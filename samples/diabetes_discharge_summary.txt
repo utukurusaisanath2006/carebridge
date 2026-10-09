@@ -1,0 +1,15 @@
+Patient: Ramesh Kumar, 58M
+Discharged from: Apollo Hospital, Chennai
+Date: 08-Oct-2026
+Diagnosis: Type 2 Diabetes with Hypertension, post-hypoglycemic episode
+
+Instructions:
+1. Take Metformin 500mg twice daily after meals. Do not skip doses.
+2. Take Amlodipine 5mg once daily in the morning.
+3. Follow-up with Dr. Priya Sharma (Endocrinologist) within 7 days. Contact: 044-XXXXXXX
+4. Get HbA1c and fasting glucose blood test done within 3 days at any certified lab.
+5. Avoid sugar, white rice, and fried foods. Prefer whole grains, vegetables, and low-fat protein.
+6. Monitor blood pressure at home daily. Target: below 130/80.
+7. Warning: If blood sugar drops below 70 mg/dL or patient feels dizzy, sweating, or confused — go to emergency immediately.
+8. Wound care: Clean the IV site on left arm with antiseptic daily for 3 days.
+9. Refer to dietitian for a structured meal plan — patient mentioned difficulty understanding dietary restrictions.

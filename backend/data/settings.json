@@ -1,0 +1,18 @@
+{
+  "default_language": "en",
+  "enabled_languages": [
+    "en"
+  ],
+  "ui_language": "en",
+  "read_aloud_language": "en",
+  "notification_sound": true,
+  "notification_browser_push": true,
+  "notification_severities": [
+    "critical",
+    "warning",
+    "info"
+  ],
+  "quiet_hours_enabled": false,
+  "quiet_hours_start": "22:00",
+  "quiet_hours_end": "07:00"
+}

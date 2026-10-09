@@ -1,0 +1,15 @@
+Patient: Sunita Patel, 64F
+Discharged from: Fortis Memorial Hospital, Gurugram
+Date: 08-Oct-2026
+Diagnosis: Post-percutaneous coronary intervention (stent placement) for unstable angina
+
+Instructions:
+1. Take Aspirin 75mg once daily with breakfast.
+2. Take Clopidogrel 75mg once daily after lunch. Do not stop blood thinners without cardiologist approval.
+3. Take Atorvastatin 40mg at bedtime.
+4. Follow-up with Dr. Arvind Mehra (Cardiology) in 2 weeks with a 12-lead ECG.
+5. Avoid lifting heavy weights over 5 kg and strenuous exertion for 10 days.
+6. Check femoral puncture site in right groin daily for redness, swelling, or active bleeding.
+7. Warning: If severe chest pain, shortness of breath, or bleeding occurs, call emergency right away.
+8. Low-sodium, heart-healthy diet; restrict fluid intake if ankle swelling occurs.
+9. Needs human review: patient reported mild allergy reaction to generic statins in 2021.

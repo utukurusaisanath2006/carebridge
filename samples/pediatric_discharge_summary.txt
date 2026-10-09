@@ -1,0 +1,13 @@
+Patient: Aarav Sharma, 6M
+Discharged from: Max Super Speciality Hospital, New Delhi
+Date: 08-Oct-2026
+Diagnosis: Acute Viral Bronchitis with High-Grade Febrile Episode
+
+Instructions:
+1. Give Paracetamol syrup 250mg/5ml, 5ml every 6 hours only if temperature exceeds 100.4 F.
+2. Give Salbutamol inhaler 2 puffs with spacer twice daily for 5 days.
+3. Keep the child well-hydrated with warm oral fluids, soups, and electrolyte solutions.
+4. Follow-up with Dr. Neha Kapoor (Pediatrician) in 5 days at OPD Room 204.
+5. Warning: If child shows rapid chest retractions, blue lips, or stays unusually lethargic, rush to pediatric emergency immediately.
+6. Monitor body temperature with a digital armpit thermometer every 4 hours.
+7. Avoid cold drinks, oily snacks, and exposure to dusty air or cigarette smoke.
