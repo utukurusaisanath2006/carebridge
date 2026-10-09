@@ -28,7 +28,7 @@ export const DEFAULT_SUPPORTED_LANGUAGES = [
 
 const SAFE_DEFAULTS = {
   default_language: 'en',
-  enabled_languages: ['en'],
+  enabled_languages: ['en', 'hi', 'ta'],
   ui_language: 'en',
   read_aloud_language: 'en'
 };
@@ -66,9 +66,11 @@ const getInitialSettings = () => {
     if (cached) {
       const parsed = JSON.parse(cached);
       if (parsed && typeof parsed === 'object') {
-        const langs = Array.isArray(parsed.enabled_languages) && parsed.enabled_languages.length > 0
-          ? Array.from(new Set(['en', ...parsed.enabled_languages]))
-          : ['en'];
+        const rawLangs = Array.isArray(parsed.enabled_languages) && parsed.enabled_languages.length > 0
+          ? parsed.enabled_languages
+          : ['en', 'hi', 'ta'];
+        // Ensure core translated languages are accessible if only 'en' was previously cached
+        const langs = Array.from(new Set(['en', ...rawLangs, ...(rawLangs.length === 1 && rawLangs[0] === 'en' ? ['hi', 'ta'] : [])]));
         const uiLang = (typeof parsed.ui_language === 'string' && langs.includes(parsed.ui_language))
           ? parsed.ui_language
           : 'en';

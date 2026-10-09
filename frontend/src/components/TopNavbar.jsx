@@ -141,7 +141,7 @@ export default function TopNavbar({
               <div>
                 <div className="text-xs font-bold text-cb-text tracking-tight flex items-center gap-2">
                   <span>{hospitalName}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cb-surface2 text-cb-textMuted font-mono uppercase border border-cb-border">
+                  <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full bg-cb-surface2 text-cb-textMuted font-mono uppercase border border-cb-border">
                     {t('topbar.ward', null, 'Ward 4B')}
                   </span>
                 </div>
@@ -153,39 +153,41 @@ export default function TopNavbar({
           </div>
 
           {/* Right: Engine Badge, Alarm Trigger, Lang Switcher, Bell, Theme, Settings, User Menu */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5">
             {/* Visible Engine Badge / Honest Fallback Badge (Clinical Safety Rule) */}
             {isFallback ? (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF4D5E]/15 text-[#FF4D5E] border border-[#FF4D5E]/40 text-xs font-bold shadow-sm">
+              <div className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF4D5E]/15 text-[#FF4D5E] border border-[#FF4D5E]/40 text-xs font-bold shadow-sm">
                 <AlertTriangle className="w-3.5 h-3.5 text-[#FF4D5E]" />
                 <span>{t('topbar.offlineMode', null, 'Offline demo mode – rule-based parser (not AI)')}</span>
               </div>
             ) : (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#55D6A2]/15 text-[#55D6A2] border border-[#55D6A2]/30 text-xs font-mono font-medium shadow-sm">
+              <div className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#55D6A2]/15 text-[#55D6A2] border border-[#55D6A2]/30 text-xs font-mono font-medium shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-[#55D6A2]" />
                 <span>{t('topbar.aiEngine', { model: aiModel }, `AI: Claude ${aiModel}`)}</span>
               </div>
             )}
 
             {/* Quick Demo Alarm Button */}
-            <button
-              type="button"
-              onClick={onTriggerDemoAlarm}
-              disabled={demoAlarmCountdown !== null}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-bold transition-all cursor-pointer ${
-                demoAlarmCountdown !== null
-                  ? 'bg-[#FF4D5E] text-[#050505] animate-pulse shadow-glow-coral'
-                  : 'bg-[#FF6242]/15 hover:bg-[#FF6242] text-[#FF6242] hover:text-[#050505] border border-[#FF6242]/40 shadow-sm'
-              }`}
-              title={t('topbar.testAlarmTooltip', null, 'Trigger a live in-app audio alarm in 10 seconds for judges')}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>
-                {demoAlarmCountdown !== null
-                  ? t('topbar.alarmCountdown', { seconds: demoAlarmCountdown }, `Alarm in ${demoAlarmCountdown}s...`)
-                  : t('topbar.testAlarm', null, '⚡ Test Alarm (10s)')}
-              </span>
-            </button>
+            <div className="hidden md:block">
+              <button
+                type="button"
+                onClick={onTriggerDemoAlarm}
+                disabled={demoAlarmCountdown !== null}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-bold transition-all cursor-pointer ${
+                  demoAlarmCountdown !== null
+                    ? 'bg-[#FF4D5E] text-[#050505] animate-pulse shadow-glow-coral'
+                    : 'bg-[#FF6242]/15 hover:bg-[#FF6242] text-[#FF6242] hover:text-[#050505] border border-[#FF6242]/40 shadow-sm'
+                }`}
+                title={t('topbar.testAlarmTooltip', null, 'Trigger a live in-app audio alarm in 10 seconds for judges')}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>
+                  {demoAlarmCountdown !== null
+                    ? t('topbar.alarmCountdown', { seconds: demoAlarmCountdown }, `Alarm in ${demoAlarmCountdown}s...`)
+                    : t('topbar.testAlarm', null, '⚡ Test Alarm (10s)')}
+                </span>
+              </button>
+            </div>
 
             {/* Language Switcher: Shows ONLY operator-enabled languages */}
             {enabledCodes.length > 1 ? (
@@ -213,7 +215,7 @@ export default function TopNavbar({
                 })}
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-1.5 text-xs text-cb-textMuted bg-cb-surface2 px-2.5 py-1 rounded-control border border-cb-border font-mono">
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-cb-textMuted bg-cb-surface2 px-2.5 py-1 rounded-control border border-cb-border font-mono">
                 <Languages className="w-3.5 h-3.5 text-cb-textMuted" />
                 <span>{t('topbar.englishOnly', null, 'English only')}</span>
               </div>
@@ -234,7 +236,7 @@ export default function TopNavbar({
             <button
               type="button"
               onClick={toggleMotion}
-              className="p-2 text-cb-textMuted hover:text-cb-text hover:bg-cb-surface2 rounded-control border border-cb-border transition-colors cursor-pointer hidden md:flex items-center justify-center"
+              className="p-2 text-cb-textMuted hover:text-cb-text hover:bg-cb-surface2 rounded-control border border-cb-border transition-colors cursor-pointer hidden lg:flex items-center justify-center"
               title={motionPaused ? 'Resume animations' : 'Pause animations'}
               aria-label="Toggle motion"
             >

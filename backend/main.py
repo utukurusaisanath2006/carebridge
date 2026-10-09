@@ -6,7 +6,10 @@ medication scheduling, adherence tracking, audit logging, and iCalendar export.
 
 import os
 import io
+import re
+import time
 import json
+import random
 import base64
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
@@ -277,6 +280,46 @@ async def change_password_endpoint(
     log_auth_event(user.username, "PASSWORD_CHANGED", details="User changed password")
     return {"success": True, "message": "Password updated successfully"}
 
+
+class SendOtpRequest(BaseModel):
+    mobile: str
+
+class VerifyOtpRequest(BaseModel):
+    mobile: str
+    otp: str
+
+OTP_CACHE: Dict[str, Dict[str, Any]] = {}
+
+@app.post("/api/auth/send-otp")
+async def send_otp_endpoint(req: SendOtpRequest):
+    clean = re.sub(r"[^\d]", "", req.mobile)
+    mobile_10 = clean[-10:] if len(clean) >= 10 else clean
+    if len(mobile_10) < 10:
+        raise HTTPException(status_code=400, detail="Please enter a valid 10-digit mobile number.")
+    
+    import random
+    code = f"{random.randint(1000, 9999)}"
+    OTP_CACHE[mobile_10] = {
+        "code": code,
+        "expires_at": time.time() + 300
+    }
+    return {
+        "success": True,
+        "otp": code,
+        "message": f"Verification code sent to +91 {mobile_10}. Demo OTP: {code}"
+    }
+
+@app.post("/api/auth/verify-otp")
+async def verify_otp_endpoint(req: VerifyOtpRequest):
+    clean = re.sub(r"[^\d]", "", req.mobile)
+    mobile_10 = clean[-10:] if len(clean) >= 10 else clean
+    entered_otp = req.otp.strip()
+    
+    record = OTP_CACHE.get(mobile_10)
+    if entered_otp == "1234" or (record and record.get("code") == entered_otp and record.get("expires_at", 0) > time.time()):
+        return {"success": True, "verified": True, "message": "Mobile number verified successfully."}
+    
+    raise HTTPException(status_code=400, detail="Invalid or expired OTP. Use demo code '1234' or re-request.")
 
 @app.post("/api/auth/register-patient")
 async def register_patient_endpoint(

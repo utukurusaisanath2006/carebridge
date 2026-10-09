@@ -14,7 +14,7 @@ SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "settings.j
 
 DEFAULT_SETTINGS = {
     "default_language": "en",
-    "enabled_languages": ["en"],
+    "enabled_languages": ["en", "hi", "ta"],
     "ui_language": "en",
     "read_aloud_language": "en"
 }

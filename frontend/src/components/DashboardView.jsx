@@ -58,7 +58,7 @@ export default function DashboardView({
               </span>
             </div>
             
-            <h1 className="font-syne font-extrabold text-2xl sm:text-3xl text-cb-text tracking-tight-syne flex items-center gap-3">
+            <h1 className="font-display font-black text-3xl sm:text-4xl tracking-[-0.01em] text-cb-text flex items-center gap-3">
               <User className="w-6 h-6 text-[#FF6242]" />
               <span>{plan.patient_name}</span>
             </h1>
@@ -92,18 +92,18 @@ export default function DashboardView({
         </div>
       </div>
 
-      {/* KPI Cards Grid with Big Syne Numerals and Mono Labels */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* KPI Cards Grid with Big Display Numerals and Mono Labels */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         {/* Pending Actions */}
         <div
           onClick={() => onNavigate('plan')}
-          className="glass-card glass-card-interactive p-5 cursor-pointer space-y-1.5"
+          className="glass-card glass-card-interactive p-5 cursor-pointer space-y-1.5 border-t-2 border-t-[#FF6242]/40"
         >
           <div className="flex items-center justify-between text-[10px] font-mono font-bold text-cb-textMuted uppercase tracking-wide-mono">
             <span>{t('dashboard.pendingTasks', null, 'Pending Tasks')}</span>
             <Clock className="w-4 h-4 text-[#F5B94A]" />
           </div>
-          <div className="font-syne font-extrabold text-3xl sm:text-4xl text-cb-text">
+          <div className="font-display font-black text-3xl sm:text-4xl text-cb-text">
             {formatNumber(pendingCount, currentLang)}
           </div>
           <div className="text-[11px] text-cb-textMuted">
@@ -120,7 +120,7 @@ export default function DashboardView({
             <span>{t('dashboard.completedTasks', null, 'Completed')}</span>
             <CheckCircle2 className="w-4 h-4 text-[#55D6A2]" />
           </div>
-          <div className="font-syne font-extrabold text-3xl sm:text-4xl text-[#55D6A2]">
+          <div className="font-display font-black text-3xl sm:text-4xl text-[#55D6A2]">
             {formatNumber(completedCount, currentLang)}
           </div>
           <div className="text-[11px] text-cb-textMuted">
@@ -137,7 +137,7 @@ export default function DashboardView({
             <span>{t('dashboard.escalationsTitle', null, 'Escalations')}</span>
             <AlertTriangle className="w-4 h-4 text-[#FF4D5E]" />
           </div>
-          <div className="font-syne font-extrabold text-3xl sm:text-4xl text-[#FF4D5E]">
+          <div className="font-display font-black text-3xl sm:text-4xl text-[#FF4D5E]">
             {formatNumber(escalatedCount, currentLang)}
           </div>
           <div className="text-[11px] text-[#FF4D5E]/90 font-semibold flex items-center gap-1 font-mono uppercase">
@@ -155,7 +155,7 @@ export default function DashboardView({
             <span>{t('dashboard.adherenceRate', null, 'Adherence Rate')}</span>
             <TrendingUp className="w-4 h-4 text-[#55D6A2]" />
           </div>
-          <div className="font-syne font-extrabold text-3xl sm:text-4xl text-[#55D6A2]">
+          <div className="font-display font-black text-3xl sm:text-4xl text-[#55D6A2]">
             {formatNumber(adherenceMetrics.adherence_percentage || 94, currentLang)}%
           </div>
           <div className="text-[11px] text-[#55D6A2] font-mono">
@@ -163,6 +163,9 @@ export default function DashboardView({
           </div>
         </div>
       </div>
+
+      {/* Subtle Horizontal Divider */}
+      <div className="border-t border-[rgba(255,98,66,0.12)] my-1" />
 
       {/* Next Upcoming Action Card */}
       {nextTask && (
@@ -236,7 +239,7 @@ export default function DashboardView({
                 </div>
                 <div className="space-y-0.5">
                   <div className="text-[10px] font-mono font-extrabold text-[#FF4D5E] uppercase tracking-wide-mono">
-                    URGENT WARNING
+                    {t('dashboard.urgentWarningLabel', null, 'URGENT WARNING')}
                   </div>
                   <div className="text-xs font-bold text-cb-text leading-relaxed">
                     {warning}
@@ -249,9 +252,9 @@ export default function DashboardView({
       )}
 
       {/* Plain Language Care Coordinator Overview Box */}
-      <div className="glass-card p-5 space-y-2 border-l-4 border-l-[#55D6A2]">
-        <h3 className="text-xs font-mono font-bold uppercase tracking-wide-mono text-[#55D6A2] flex items-center gap-2">
-          <HeartPulse className="w-4 h-4 text-[#55D6A2]" />
+      <div className="glass-card p-5 space-y-2 border-l-4 border-l-[#FF6242]">
+        <h3 className="text-xs font-mono font-bold uppercase tracking-wide-mono text-[#FF9A62] flex items-center gap-2">
+          <HeartPulse className="w-4 h-4 text-[#FF6242]" />
           <span>{t('dashboard.physicianSummaryTitle', null, 'Physician Summary (Grade-6 Plain Language)')}</span>
         </h3>
         <p className="text-sm text-cb-text leading-relaxed">

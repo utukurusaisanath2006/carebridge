@@ -54,6 +54,7 @@ export default {
         }
       },
       fontFamily: {
+        display: ['"Barlow Condensed"', 'sans-serif'],
         syne: ['Syne', 'sans-serif'],
         sans: ['DM Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Telugu', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace'],

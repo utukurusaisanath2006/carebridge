@@ -1,7 +1,8 @@
 {
   "default_language": "en",
   "enabled_languages": [
-    "en"
+    "en",
+    "ta"
   ],
   "ui_language": "en",
   "read_aloud_language": "en",

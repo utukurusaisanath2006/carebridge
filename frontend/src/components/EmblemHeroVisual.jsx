@@ -2,28 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSettings } from '../context/SettingsContext';
 
 /**
- * EmblemHeroVisual Component
- * 
- * Replaces the old SVG diagram with the CareBridge Sacred-Geometry / Concentric Circuit Seal.
- * Features:
- * 1. Responsive sizing: 560-620px desktop, ~80% screen width on mobile.
- * 2. Dark mode: mix-blend-mode: screen so black dissolves into #050505.
- * 3. Light mode: black seal housed in a dedicated #050505 circular container with orange glow ring.
- * 4. Concentric Rings:
- *    - Ring 1 (outer, r=280): 2px stroke rotating slowly (90s) with conic-style orange-to-mint gradient & soft glow.
- *    - Ring 2 (inner, r=238): 1px dashed ring counter-rotating (140s).
- *    - 4 Nodes: HOSPITAL, PATIENT, CAREGIVER, OPERATOR with horizontal IBM Plex Mono pills and staggered pulse.
- *    - Bridge Arc: Glowing curved line pulsing between HOSPITAL and PATIENT nodes.
- * 5. Floating motion (translateY(8px) over 8s) + breathing glow pulse.
- * 6. Desktop pointer parallax (up to 12px offset, non-touch).
- * 7. Complete accessibility: pauses with motion toggle and prefers-reduced-motion.
+ * EmblemHeroVisual — v2 (Bigger + Cinematic Animations)
+ *
+ * Changes vs v1:
+ * - Container: 90vw / max-w-[540px] → max-w-[720px] (lg)
+ * - Outer ring:  spin 55s  (was 90s) — noticeably faster
+ * - Mid ring:    spin 90s  (new ring between outer & inner, 2px dashed)
+ * - Inner ring:  counter-spin 35s (was 140s) — fast counter-rotate
+ * - Data-stream:  animated dash segments along all 4 inter-node chords
+ * - nodePing:     expanding ping circle on each node, staggered
+ * - glowBreath:   ambient orange blob breathes (scale + opacity)
+ * - Emblem centre: stronger drop-shadows, floats more (12px)
+ * - Parallax:     max offset 18px (was 12px)
  */
 export default function EmblemHeroVisual() {
   const { motionPaused, isDark } = useSettings();
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
 
-  // Subtle pointer parallax on desktop (max 12px offset)
   useEffect(() => {
     if (motionPaused || typeof window === 'undefined') return;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -32,14 +28,13 @@ export default function EmblemHeroVisual() {
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const deltaX = (e.clientX - centerX) / (window.innerWidth / 2);
-      const deltaY = (e.clientY - centerY) / (window.innerHeight / 2);
-      
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / (window.innerWidth / 2);
+      const dy = (e.clientY - cy) / (window.innerHeight / 2);
       setOffset({
-        x: Math.max(-12, Math.min(12, deltaX * 12)),
-        y: Math.max(-12, Math.min(12, deltaY * 12))
+        x: Math.max(-18, Math.min(18, dx * 18)),
+        y: Math.max(-18, Math.min(18, dy * 18)),
       });
     };
 
@@ -51,26 +46,64 @@ export default function EmblemHeroVisual() {
     ? {}
     : {
         transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
-        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+        transition: 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
       };
+
+  /* ── Node positions (on Ring 1, r=280, centre 320,320) ──
+     HOSPITAL  : 220° → ~(105, 140)
+     PATIENT   : 320° → ~(535, 140)
+     CAREGIVER : 40°  → ~(535, 500)
+     OPERATOR  : 140° → ~(105, 500)
+  */
+  const nodes = [
+    { id: 'HOSPITAL',  cx: 105, cy: 140, label: 'HOSPITAL',  delay: '0s',    pillX: 105, pillY: 108, pillW: 84,  pingDelay: '0s' },
+    { id: 'PATIENT',   cx: 535, cy: 140, label: 'PATIENT',   delay: '0.75s', pillX: 535, pillY: 108, pillW: 76,  pingDelay: '0.6s' },
+    { id: 'CAREGIVER', cx: 535, cy: 500, label: 'CAREGIVER', delay: '1.5s',  pillX: 535, pillY: 532, pillW: 88,  pingDelay: '1.2s' },
+    { id: 'OPERATOR',  cx: 105, cy: 500, label: 'OPERATOR',  delay: '2.25s', pillX: 105, pillY: 532, pillW: 84,  pingDelay: '1.8s' },
+  ];
+
+  /* Chord pairs for data-stream lines */
+  const chords = [
+    { x1: 105, y1: 140, x2: 535, y2: 140, delay: '0s' },    // H → P
+    { x1: 535, y1: 140, x2: 535, y2: 500, delay: '1s' },    // P → C
+    { x1: 535, y1: 500, x2: 105, y2: 500, delay: '2s' },    // C → O
+    { x1: 105, y1: 500, x2: 105, y2: 140, delay: '3s' },    // O → H
+    { x1: 105, y1: 140, x2: 535, y2: 500, delay: '0.5s' },  // H → C (diagonal)
+    { x1: 535, y1: 140, x2: 105, y2: 500, delay: '1.5s' },  // P → O (diagonal)
+  ];
 
   return (
     <div
       ref={containerRef}
-      className="relative w-[84vw] max-w-[420px] sm:max-w-[500px] lg:max-w-[620px] aspect-square mx-auto flex items-center justify-center select-none"
+      /* BIGGER: 90vw mobile, 540px sm, 640px md, 720px lg */
+      className="relative w-[90vw] max-w-[440px] sm:max-w-[540px] md:max-w-[640px] lg:max-w-[720px] aspect-square mx-auto flex items-center justify-center select-none"
       style={parallaxStyle}
       aria-label="CareBridge Sacred Geometry Luminous Care Emblem"
     >
-      {/* ════════ BACKGROUND AMBIENT ORANGE RADIAL GLOW ════════ */}
+      {/* ══ AMBIENT ORANGE RADIAL GLOW (breathing) ══ */}
       <div
-        className="pointer-events-none absolute inset-4 rounded-full opacity-40 blur-3xl z-0 transition-opacity"
+        className="pointer-events-none absolute inset-0 rounded-full opacity-50 blur-[80px] z-0"
         style={{
-          background: 'radial-gradient(circle at 50% 50%, rgba(255, 98, 66, 0.38) 0%, rgba(255, 154, 98, 0.15) 45%, transparent 72%)'
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(255,98,66,0.48) 0%, rgba(255,154,98,0.22) 42%, transparent 70%)',
+          animation: motionPaused ? 'none' : 'glowBreath 5s ease-in-out infinite',
+        }}
+        aria-hidden="true"
+      />
+      {/* secondary softer mint-hint ring */}
+      <div
+        className="pointer-events-none absolute inset-8 rounded-full opacity-20 blur-2xl z-0"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(255,98,66,0.3) 0%, transparent 60%)',
+          animation: motionPaused ? 'none' : 'glowBreath 7s ease-in-out infinite reverse',
         }}
         aria-hidden="true"
       />
 
-      {/* ════════ SVG CONCENTRIC RINGS, NODES & BRIDGE ARC LAYER ════════ */}
+      {/* ══════════════════════════════════════════════════════
+          SVG LAYER  (viewBox 640×640, overflow visible)
+          ══════════════════════════════════════════════════════ */}
       <svg
         viewBox="0 0 640 640"
         fill="none"
@@ -79,125 +112,166 @@ export default function EmblemHeroVisual() {
         aria-hidden="true"
       >
         <defs>
-          {/* Ring 1 Conic-simulation Gradient Segments */}
-          <linearGradient id="ring1GradA" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FF6242" stopOpacity="1" />
-            <stop offset="100%" stopColor="#FF9A62" stopOpacity="0.85" />
+          {/* Ring-1 gradient segments */}
+          <linearGradient id="r1gA" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stopColor="#FF6242" stopOpacity="1" />
+            <stop offset="100%" stopColor="#FF9A62" stopOpacity="0.9" />
           </linearGradient>
-          <linearGradient id="ring1GradB" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#FF9A62" stopOpacity="0.85" />
+          <linearGradient id="r1gB" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stopColor="#FF9A62" stopOpacity="0.9" />
             <stop offset="100%" stopColor="#FF6242" stopOpacity="0.65" />
           </linearGradient>
-          <linearGradient id="ring1GradC" x1="100%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor="#FF6242" stopOpacity="0.65" />
-            <stop offset="100%" stopColor="#FF6242" stopOpacity="0.1" />
+          <linearGradient id="r1gC" x1="100%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%"   stopColor="#FF6242" stopOpacity="0.65" />
+            <stop offset="100%" stopColor="#FF6242" stopOpacity="0.12" />
           </linearGradient>
-          <linearGradient id="ring1GradD" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#FF6242" stopOpacity="0.1" />
+          <linearGradient id="r1gD" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%"   stopColor="#FF6242" stopOpacity="0.12" />
             <stop offset="100%" stopColor="#FF6242" stopOpacity="1" />
           </linearGradient>
 
-          {/* Bridge Arc Gradient (Hospital to Patient) */}
-          <linearGradient id="bridgeArcGrad" x1="105.5" y1="140" x2="534.5" y2="140" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#FF6242" />
-            <stop offset="50%" stopColor="#FF9A62" />
-            <stop offset="85%" stopColor="#FF8050" />
+          {/* Bridge arc gradient */}
+          <linearGradient id="bridgeArcGrad" x1="105" y1="140" x2="535" y2="140" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stopColor="#FF6242" />
+            <stop offset="50%"  stopColor="#FF9A62" />
+            <stop offset="85%"  stopColor="#FF8050" />
             <stop offset="100%" stopColor="#FF6242" />
           </linearGradient>
 
-          {/* Soft Glow Filter for Ring and Nodes */}
-          <filter id="orangeSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3.5" result="blur" />
+          {/* Data-stream dash gradient */}
+          <linearGradient id="streamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stopColor="#FF6242" stopOpacity="0" />
+            <stop offset="50%"  stopColor="#FF9A62" stopOpacity="1" />
+            <stop offset="100%" stopColor="#FF6242" stopOpacity="0" />
+          </linearGradient>
+
+          {/* Filters */}
+          <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
-          
-          <filter id="bridgeGlow" x="-20%" y="-40%" width="140%" height="180%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+          <filter id="glowStrong" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="7" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <filter id="bridgeGlow" x="-20%" y="-60%" width="140%" height="220%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
 
-        {/* ════════ RING 1 (OUTER, r=280, 2px border, rotating 90s) ════════ */}
+        {/* ── RING 1: OUTER (r=280, 2.5px, spin 55s) ── */}
         <g
-          className="origin-center"
+          style={{
+            transformOrigin: '320px 320px',
+            animation: motionPaused ? 'none' : 'spin 55s linear infinite',
+            filter: 'url(#glow)',
+          }}
+        >
+          <path d="M 320 40 A 280 280 0 0 1 600 320" stroke="url(#r1gA)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M 600 320 A 280 280 0 0 1 320 600" stroke="url(#r1gB)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M 320 600 A 280 280 0 0 1 40 320"  stroke="url(#r1gC)" strokeWidth="2"   strokeLinecap="round" />
+          <path d="M 40 320 A 280 280 0 0 1 320 40"   stroke="url(#r1gD)" strokeWidth="2.5" strokeLinecap="round" />
+          {/* Tick marks on ring 1 */}
+          {[0,30,60,90,120,150,180,210,240,270,300,330].map(deg => {
+            const rad = (deg - 90) * Math.PI / 180;
+            const ox = 320 + 280 * Math.cos(rad);
+            const oy = 320 + 280 * Math.sin(rad);
+            const ix = 320 + 272 * Math.cos(rad);
+            const iy = 320 + 272 * Math.sin(rad);
+            return <line key={deg} x1={ox} y1={oy} x2={ix} y2={iy} stroke="#FF6242" strokeWidth="1" strokeOpacity="0.55" />;
+          })}
+        </g>
+
+        {/* ── RING 2: MID (r=258, 1.5px dashed, spin 90s) ── NEW */}
+        <g
           style={{
             transformOrigin: '320px 320px',
             animation: motionPaused ? 'none' : 'spin 90s linear infinite',
-            filter: 'url(#orangeSoftGlow)'
           }}
         >
-          {/* Segment 1: Top-Right (0 to 90 deg) */}
-          <path
-            d="M 320 40 A 280 280 0 0 1 600 320"
-            stroke="url(#ring1GradA)"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          {/* Segment 2: Bottom-Right (90 to 180 deg) */}
-          <path
-            d="M 600 320 A 280 280 0 0 1 320 600"
-            stroke="url(#ring1GradB)"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          {/* Segment 3: Bottom-Left (180 to 270 deg) */}
-          <path
-            d="M 320 600 A 280 280 0 0 1 40 320"
-            stroke="url(#ring1GradC)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          {/* Segment 4: Top-Left (270 to 360 deg) */}
-          <path
-            d="M 40 320 A 280 280 0 0 1 320 40"
-            stroke="url(#ring1GradD)"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
+          <circle cx="320" cy="320" r="258" stroke="#FF6242" strokeWidth="1.5" strokeDasharray="12 6" strokeOpacity="0.28" />
+          {/* 8 bright pip marks */}
+          {[0,45,90,135,180,225,270,315].map(deg => {
+            const rad = (deg - 90) * Math.PI / 180;
+            return (
+              <circle key={deg}
+                cx={320 + 258 * Math.cos(rad)}
+                cy={320 + 258 * Math.sin(rad)}
+                r="2.5" fill="#FF9A62" opacity="0.6"
+              />
+            );
+          })}
         </g>
 
-        {/* ════════ RING 2 (INNER, r=238, 1px dashed, counter-rotating 140s) ════════ */}
+        {/* ── RING 3: INNER (r=210, 1px dashed, counter-spin 35s) ── */}
         <g
-          className="origin-center"
           style={{
             transformOrigin: '320px 320px',
-            animation: motionPaused ? 'none' : 'spinReverse 140s linear infinite'
+            animation: motionPaused ? 'none' : 'spinReverse 35s linear infinite',
           }}
         >
-          <circle
-            cx="320"
-            cy="320"
-            r="238"
-            stroke="#FF6242"
-            strokeWidth="1"
-            strokeDasharray="4 8"
-            strokeOpacity="0.45"
-          />
-          {/* Orange accent dash dots on inner ring */}
-          <circle cx="320" cy="82" r="2" fill="#FF9A62" opacity="0.8" />
-          <circle cx="558" cy="320" r="2" fill="#FF9A62" opacity="0.8" />
-          <circle cx="320" cy="558" r="2" fill="#FF9A62" opacity="0.8" />
-          <circle cx="82" cy="320" r="2" fill="#FF9A62" opacity="0.8" />
+          <circle cx="320" cy="320" r="210" stroke="#FF6242" strokeWidth="1" strokeDasharray="4 9" strokeOpacity="0.5" />
+          {[0,90,180,270].map(deg => {
+            const rad = (deg - 90) * Math.PI / 180;
+            return (
+              <circle key={deg}
+                cx={320 + 210 * Math.cos(rad)}
+                cy={320 + 210 * Math.sin(rad)}
+                r="2" fill="#FF9A62" opacity="0.9"
+              />
+            );
+          })}
         </g>
 
-        {/* ════════ THE BRIDGE ARC (PULSING BETWEEN HOSPITAL AND PATIENT) ════════ */}
-        <g filter="url(#bridgeGlow)">
-          {/* Base Bridge Line */}
-          <path
-            d="M 105.5 140 Q 320 70 534.5 140"
-            stroke="url(#bridgeArcGrad)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeDasharray="6 4"
-            fill="none"
-            opacity="0.9"
+        {/* ── RING 4: INNERMOST geometry lattice (r=155, 3-segment, spin 70s) ── */}
+        <g
+          style={{
+            transformOrigin: '320px 320px',
+            animation: motionPaused ? 'none' : 'spinReverse 70s linear infinite',
+            filter: 'url(#glow)',
+          }}
+        >
+          <circle cx="320" cy="320" r="155" stroke="#FF6242" strokeWidth="1" strokeDasharray="2 14" strokeOpacity="0.35" />
+          {/* Triangle inscribed */}
+          {(() => {
+            const pts = [0,120,240].map(d => {
+              const r2 = (d - 90) * Math.PI / 180;
+              return `${320 + 155 * Math.cos(r2)},${320 + 155 * Math.sin(r2)}`;
+            });
+            return <polygon points={pts.join(' ')} stroke="#FF6242" strokeWidth="1" strokeOpacity="0.22" fill="none" />;
+          })()}
+        </g>
+
+        {/* ── DATA-STREAM DASHES (animated along chords) ── */}
+        {!motionPaused && chords.map((c, i) => (
+          <line
+            key={i}
+            x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+            stroke="url(#streamGrad)"
+            strokeWidth="1"
+            strokeDasharray="24 200"
+            strokeOpacity="0.65"
             style={{
-              animation: motionPaused ? 'none' : 'pulseGlow 3s ease-in-out infinite'
+              animation: `dataStream ${3.5 + i * 0.3}s ease-in-out ${c.delay} infinite`,
             }}
           />
-          {/* Secondary thin underlying aura line */}
+        ))}
+
+        {/* ── BRIDGE ARC (HOSPITAL → PATIENT, pulsing) ── */}
+        <g filter="url(#bridgeGlow)">
           <path
-            d="M 105.5 140 Q 320 70 534.5 140"
+            d="M 105 140 Q 320 60 535 140"
+            stroke="url(#bridgeArcGrad)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray="8 5"
+            fill="none"
+            opacity="0.95"
+            style={{ animation: motionPaused ? 'none' : 'pulseGlow 3s ease-in-out infinite' }}
+          />
+          <path
+            d="M 105 140 Q 320 60 535 140"
             stroke="#FF6242"
             strokeWidth="1"
             strokeOpacity="0.3"
@@ -205,202 +279,59 @@ export default function EmblemHeroVisual() {
           />
         </g>
 
-        {/* ════════ 4 CARDINAL NODES PINNED TO RING 1 ════════ */}
-        
-        {/* NODE 1: HOSPITAL (Top-Left, 220 deg: 105.5, 140) */}
-        <g>
-          {/* Pulse Halo */}
-          <circle
-            cx="105.5"
-            cy="140"
-            r="9"
-            fill="none"
-            stroke="#FF6242"
-            strokeWidth="1.5"
-            opacity="0.6"
-            style={{
-              animation: motionPaused ? 'none' : 'pulseGlow 2.5s ease-in-out infinite',
-              animationDelay: '0s'
-            }}
-          />
-          <circle cx="105.5" cy="140" r="5" fill="#FF6242" />
-          <circle cx="105.5" cy="140" r="2" fill="#FFFFFF" />
-          {/* Horizontal Mono Pill */}
-          <g transform="translate(105.5, 108)">
-            <rect
-              x="-42"
-              y="-12"
-              width="84"
-              height="24"
-              rx="12"
-              fill={isDark ? 'rgba(5, 5, 5, 0.92)' : 'rgba(15, 15, 15, 0.95)'}
-              stroke="rgba(255, 98, 66, 0.45)"
-              strokeWidth="1"
+        {/* ── 4 CARDINAL NODES ── */}
+        {nodes.map(n => (
+          <g key={n.id}>
+            {/* Expanding ping ring */}
+            <circle
+              cx={n.cx} cy={n.cy} r="9"
+              fill="none" stroke="#FF6242" strokeWidth="1.5" opacity="0.8"
+              style={{ animation: motionPaused ? 'none' : `nodePing 2.8s ease-out ${n.pingDelay} infinite` }}
             />
-            <text
-              x="0"
-              y="1"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="#FF6242"
-              fontFamily="'IBM Plex Mono', monospace"
-              fontSize="11"
-              fontWeight="600"
-              letterSpacing="0.08em"
-            >
-              HOSPITAL
-            </text>
-          </g>
-        </g>
-
-        {/* NODE 2: PATIENT (Top-Right, 320 deg: 534.5, 140) */}
-        <g>
-          {/* Pulse Halo */}
-          <circle
-            cx="534.5"
-            cy="140"
-            r="9"
-            fill="none"
-            stroke="#FF6242"
-            strokeWidth="1.5"
-            opacity="0.6"
-            style={{
-              animation: motionPaused ? 'none' : 'pulseGlow 2.5s ease-in-out infinite',
-              animationDelay: '0.75s'
-            }}
-          />
-          <circle cx="534.5" cy="140" r="5" fill="#FF6242" />
-          <circle cx="534.5" cy="140" r="2" fill="#FFFFFF" />
-          {/* Horizontal Mono Pill */}
-          <g transform="translate(534.5, 108)">
-            <rect
-              x="-38"
-              y="-12"
-              width="76"
-              height="24"
-              rx="12"
-              fill={isDark ? 'rgba(5, 5, 5, 0.92)' : 'rgba(15, 15, 15, 0.95)'}
-              stroke="rgba(255, 98, 66, 0.45)"
-              strokeWidth="1"
+            {/* Secondary outer ping (offset delay) */}
+            <circle
+              cx={n.cx} cy={n.cy} r="9"
+              fill="none" stroke="#FF9A62" strokeWidth="1" opacity="0.45"
+              style={{ animation: motionPaused ? 'none' : `nodePing 2.8s ease-out calc(${n.pingDelay} + 1.4s) infinite` }}
             />
-            <text
-              x="0"
-              y="1"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="#FF6242"
-              fontFamily="'IBM Plex Mono', monospace"
-              fontSize="11"
-              fontWeight="600"
-              letterSpacing="0.08em"
-            >
-              PATIENT
-            </text>
+            {/* Core dot */}
+            <circle cx={n.cx} cy={n.cy} r="6" fill="#FF6242" filter="url(#glow)" />
+            <circle cx={n.cx} cy={n.cy} r="2.5" fill="#FFFFFF" />
+            {/* Label pill */}
+            <g transform={`translate(${n.pillX}, ${n.pillY})`}>
+              <rect
+                x={-n.pillW / 2} y="-13"
+                width={n.pillW} height="26"
+                rx="13"
+                fill={isDark ? 'rgba(5,5,5,0.93)' : 'rgba(15,15,15,0.95)'}
+                stroke="rgba(255,98,66,0.5)"
+                strokeWidth="1"
+              />
+              <text
+                x="0" y="1"
+                textAnchor="middle" dominantBaseline="middle"
+                fill="#FF6242"
+                fontFamily="'IBM Plex Mono', monospace"
+                fontSize="11.5"
+                fontWeight="700"
+                letterSpacing="0.09em"
+              >
+                {n.label}
+              </text>
+            </g>
           </g>
-        </g>
-
-        {/* NODE 3: CAREGIVER (Bottom-Right, 40 deg: 534.5, 500) */}
-        <g>
-          {/* Pulse Halo */}
-          <circle
-            cx="534.5"
-            cy="500"
-            r="9"
-            fill="none"
-            stroke="#FF6242"
-            strokeWidth="1.5"
-            opacity="0.6"
-            style={{
-              animation: motionPaused ? 'none' : 'pulseGlow 2.5s ease-in-out infinite',
-              animationDelay: '1.5s'
-            }}
-          />
-          <circle cx="534.5" cy="500" r="5" fill="#FF6242" />
-          <circle cx="534.5" cy="500" r="2" fill="#FFFFFF" />
-          {/* Horizontal Mono Pill */}
-          <g transform="translate(534.5, 532)">
-            <rect
-              x="-44"
-              y="-12"
-              width="88"
-              height="24"
-              rx="12"
-              fill={isDark ? 'rgba(5, 5, 5, 0.92)' : 'rgba(15, 15, 15, 0.95)'}
-              stroke="rgba(255, 98, 66, 0.45)"
-              strokeWidth="1"
-            />
-            <text
-              x="0"
-              y="1"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="#FF6242"
-              fontFamily="'IBM Plex Mono', monospace"
-              fontSize="11"
-              fontWeight="600"
-              letterSpacing="0.08em"
-            >
-              CAREGIVER
-            </text>
-          </g>
-        </g>
-
-        {/* NODE 4: OPERATOR (Bottom-Left, 140 deg: 105.5, 500) */}
-        <g>
-          {/* Pulse Halo */}
-          <circle
-            cx="105.5"
-            cy="500"
-            r="9"
-            fill="none"
-            stroke="#FF6242"
-            strokeWidth="1.5"
-            opacity="0.6"
-            style={{
-              animation: motionPaused ? 'none' : 'pulseGlow 2.5s ease-in-out infinite',
-              animationDelay: '2.25s'
-            }}
-          />
-          <circle cx="105.5" cy="500" r="5" fill="#FF6242" />
-          <circle cx="105.5" cy="500" r="2" fill="#FFFFFF" />
-          {/* Horizontal Mono Pill */}
-          <g transform="translate(105.5, 532)">
-            <rect
-              x="-42"
-              y="-12"
-              width="84"
-              height="24"
-              rx="12"
-              fill={isDark ? 'rgba(5, 5, 5, 0.92)' : 'rgba(15, 15, 15, 0.95)'}
-              stroke="rgba(255, 98, 66, 0.45)"
-              strokeWidth="1"
-            />
-            <text
-              x="0"
-              y="1"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="#FF6242"
-              fontFamily="'IBM Plex Mono', monospace"
-              fontSize="11"
-              fontWeight="600"
-              letterSpacing="0.08em"
-            >
-              OPERATOR
-            </text>
-          </g>
-        </g>
+        ))}
       </svg>
 
-      {/* ════════ SACRED GEOMETRY EMBLEM ARTWORK (CENTER) ════════ */}
+      {/* ══ CENTRE EMBLEM IMAGE ══ */}
       <div
         className={`relative z-5 flex items-center justify-center ${
           isDark
-            ? 'w-[72%] h-[72%]'
-            : 'w-[72%] h-[72%] rounded-full overflow-hidden bg-[#050505] border-2 border-[#FF6242]/50 shadow-[0_0_50px_rgba(255,98,66,0.4)]'
+            ? 'w-[70%] h-[70%]'
+            : 'w-[70%] h-[70%] rounded-full overflow-hidden bg-[#050505] border-2 border-[#FF6242]/50 shadow-[0_0_60px_rgba(255,98,66,0.45)]'
         }`}
         style={{
-          animation: motionPaused ? 'none' : 'emblemFloat 8s ease-in-out infinite alternate'
+          animation: motionPaused ? 'none' : 'emblemFloat 8s ease-in-out infinite alternate',
         }}
       >
         <picture className="w-full h-full flex items-center justify-center rounded-full overflow-hidden">
@@ -412,12 +343,12 @@ export default function EmblemHeroVisual() {
             height="640"
             loading="eager"
             fetchPriority="high"
-            className="w-full h-full object-contain pointer-events-none select-none transition-all"
+            className="w-full h-full object-contain pointer-events-none select-none"
             style={{
               mixBlendMode: 'screen',
               filter: isDark
-                ? 'drop-shadow(0 0 25px rgba(255, 98, 66, 0.45)) drop-shadow(0 0 55px rgba(255, 98, 66, 0.2))'
-                : 'drop-shadow(0 0 20px rgba(255, 98, 66, 0.5))'
+                ? 'drop-shadow(0 0 32px rgba(255,98,66,0.6)) drop-shadow(0 0 70px rgba(255,98,66,0.28)) drop-shadow(0 0 120px rgba(255,154,98,0.15))'
+                : 'drop-shadow(0 0 24px rgba(255,98,66,0.55))',
             }}
           />
         </picture>

@@ -80,7 +80,7 @@ export default function Sidebar({
   return (
     <>
       {/* Desktop / Tablet Slim Near-Black Sidebar */}
-      <aside className="no-print hidden sm:flex w-64 bg-cb-bg text-cb-text flex-col shrink-0 min-h-screen border-r border-cb-border selection:bg-[#FF6242]/20 selection:text-[#FF6242] transition-colors">
+      <aside className="no-print hidden sm:flex w-60 bg-cb-bg text-cb-text flex-col shrink-0 min-h-screen border-r border-cb-border selection:bg-[#FF6242]/20 selection:text-[#FF6242] transition-colors">
         {/* Brand Header */}
         <div className="p-5 border-b border-cb-border flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export default function Sidebar({
               </svg>
             </div>
             <div>
-              <div className="flex items-center gap-1 font-syne font-bold text-lg tracking-tight-syne">
+              <div className="flex items-center gap-1 font-display font-black text-xl tracking-[-0.01em]">
                 <span>Care</span>
                 <span className="text-[#FF6242]">Bridge</span>
               </div>
@@ -110,6 +110,7 @@ export default function Sidebar({
           <div className="px-3 py-2 text-[10px] font-mono font-bold text-cb-textMuted uppercase tracking-wide-mono">
             {isPatient ? 'PATIENT PORTAL' : t('nav.coordinator', null, 'CLINICAL COORDINATOR')}
           </div>
+          <div className="mx-3 mb-1 border-t border-[rgba(255,98,66,0.10)]" />
 
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -121,7 +122,7 @@ export default function Sidebar({
                 onClick={() => setActiveView(item.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-control text-xs font-medium transition-all cursor-pointer relative group ${
                   isActive
-                    ? 'bg-[#FF6242]/15 text-[#FF6242] border-l-2 border-[#FF6242] font-bold shadow-sm'
+                    ? 'bg-[#FF6242]/15 text-[#FF6242] border-l-[3px] border-[#FF6242] font-bold shadow-sm'
                     : 'text-cb-textMuted hover:text-cb-text hover:bg-white/[0.04]'
                 }`}
               >

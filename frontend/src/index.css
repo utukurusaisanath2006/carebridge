@@ -17,6 +17,7 @@
   --status-warning: #F5B94A;
   --status-success: #55D6A2;
   --status-info: #7FB2FF;
+  --font-display: 'Barlow Condensed', sans-serif;
 }
 
 [data-theme="light"] {
@@ -140,6 +141,54 @@ button, input, select, textarea, [role="button"] {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
+}
+
+/* ════════════════════════════════════════════════════════════
+   EMBLEM ANIMATION KEYFRAMES
+   ════════════════════════════════════════════════════════════ */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.55; filter: drop-shadow(0 0 6px rgba(255,98,66,0.5)); }
+  50%       { opacity: 1;    filter: drop-shadow(0 0 18px rgba(255,98,66,0.95)) drop-shadow(0 0 32px rgba(255,154,98,0.5)); }
+}
+
+@keyframes emblemFloat {
+  0%   { transform: translateY(0px) scale(1); }
+  50%  { transform: translateY(-10px) scale(1.012); }
+  100% { transform: translateY(0px) scale(1); }
+}
+
+@keyframes glowBreath {
+  0%, 100% { opacity: 0.35; transform: scale(0.96); }
+  50%       { opacity: 0.70; transform: scale(1.06); }
+}
+
+@keyframes dataStream {
+  0%   { stroke-dashoffset: 120; opacity: 0; }
+  15%  { opacity: 0.9; }
+  85%  { opacity: 0.9; }
+  100% { stroke-dashoffset: -120; opacity: 0; }
+}
+
+@keyframes orbitPulse {
+  0%, 100% { r: 5;  opacity: 0.9; }
+  50%       { r: 8;  opacity: 0.5; }
+}
+
+@keyframes nodePing {
+  0%   { r: 9;  opacity: 0.7; }
+  70%  { r: 20; opacity: 0; }
+  100% { r: 20; opacity: 0; }
 }
 
 /* Print styles: White, ink-friendly, high-contrast, black text */

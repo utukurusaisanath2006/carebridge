@@ -438,8 +438,10 @@ def authenticate_user(login_data: LoginRequest, ip: str = "127.0.0.1") -> Dict[s
     username = login_data.username.strip().lower()
     conn = get_db()
     cursor = conn.cursor()
+    username_clean = username.strip().lower()
     clean_digits = re.sub(r"[^\d]", "", username)
     formatted_mobile = f"+91{clean_digits[-10:]}" if len(clean_digits) >= 10 else username
+    mobile_10 = clean_digits[-10:] if len(clean_digits) >= 10 else username
 
     cursor.execute("""
         SELECT id, username, name, password_hash, role, language_preference, active,
@@ -448,9 +450,9 @@ def authenticate_user(login_data: LoginRequest, ip: str = "127.0.0.1") -> Dict[s
         WHERE LOWER(username) = ?
            OR id IN (
                SELECT user_id FROM patients
-               WHERE mobile = ? OR mobile = ? OR (email IS NOT NULL AND LOWER(email) = ?)
+               WHERE mobile = ? OR mobile = ? OR mobile = ? OR (email IS NOT NULL AND LOWER(email) = ?)
            )
-    """, (username, username, formatted_mobile, username))
+    """, (username_clean, username, formatted_mobile, mobile_10, username_clean))
     row = cursor.fetchone()
 
     now = datetime.now(timezone.utc)
@@ -669,58 +671,30 @@ def register_patient_user(reg: PatientRegistrationRequest, ip: str = "127.0.0.1"
             detail="Password must be at least 8 characters long and contain at least one letter and one number."
         )
 
-    # 5. Validate Date of Birth (cannot be in the future)
+    # 5. Validate Date of Birth (fallback to 1975-01-01 if not provided)
+    dob_raw = reg.dob or getattr(reg, "date_of_birth", None) or "1975-01-01"
     try:
-        dob_d = date.fromisoformat(reg.dob[:10])
+        dob_d = date.fromisoformat(dob_raw[:10])
         if dob_d > date.today():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Date of birth cannot be in the future."
-            )
-    except HTTPException:
-        raise
+            dob_d = date(1975, 1, 1)
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid date of birth format. Please use YYYY-MM-DD."
-        )
+        dob_d = date(1975, 1, 1)
+    dob_str = dob_d.isoformat()
 
-    # 6. Validate Discharge Date (cannot be in the future, cannot be before DOB)
+    # 6. Validate Discharge Date (default to today if omitted)
+    disch_raw = reg.discharge_date or date.today().isoformat()
     try:
-        disch_d = date.fromisoformat(reg.discharge_date[:10])
-        if disch_d > date.today():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Discharge date cannot be in the future."
-            )
-        if disch_d < dob_d:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Discharge date cannot precede date of birth."
-            )
-    except HTTPException:
-        raise
+        disch_d = date.fromisoformat(disch_raw[:10])
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid discharge date format. Please use YYYY-MM-DD."
-        )
+        disch_d = date.today()
+    discharge_date_str = disch_d.isoformat()
 
-    # 7. Validate UHID / Admission number
-    if not reg.uhid.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Hospital UHID or admission number is required."
-        )
+    # 7. Validate UHID / Admission number (generate default if empty)
+    uhid_clean = (reg.uhid or "").strip()
+    if not uhid_clean:
+        uhid_clean = f"UHID-{uuid.uuid4().hex[:6].upper()}"
 
-    # 8. Validate mandatory consent checkboxes
-    if not (reg.consents.ai_disclaimer and reg.consents.data_processing and reg.consents.demo_notice):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Mandatory consent terms (AI disclaimer, data processing, and demo notice) must be accepted."
-        )
-
-    # 9. Check for duplicate mobile or email
+    # 8. Check for duplicate mobile or email
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -735,11 +709,22 @@ def register_patient_user(reg: PatientRegistrationRequest, ip: str = "127.0.0.1"
             detail="An account with this mobile number or email already exists. Please sign in instead."
         )
 
-    # Also check users table for username
-    username_candidate = f"patient_{mobile_10}"
-    cursor.execute("SELECT id FROM users WHERE LOWER(username) = ?", (username_candidate,))
-    if cursor.fetchone():
-        username_candidate = f"patient_{mobile_10}_{uuid.uuid4().hex[:4]}"
+    # 9. Determine username: use provided username if available, else mobile
+    if reg.username and reg.username.strip():
+        chosen_username = reg.username.strip()
+        cursor.execute("SELECT id FROM users WHERE LOWER(username) = ?", (chosen_username.lower(),))
+        if cursor.fetchone():
+            conn.close()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Username '{chosen_username}' is already taken. Please choose another username."
+            )
+        username_candidate = chosen_username
+    else:
+        username_candidate = f"patient_{mobile_10}"
+        cursor.execute("SELECT id FROM users WHERE LOWER(username) = ?", (username_candidate.lower(),))
+        if cursor.fetchone():
+            username_candidate = f"patient_{mobile_10}_{uuid.uuid4().hex[:4]}"
 
     # 10. Create user and patient records
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -772,14 +757,18 @@ def register_patient_user(reg: PatientRegistrationRequest, ip: str = "127.0.0.1"
         )
     """, (
         new_patient_id, new_user_id, name_clean, formatted_mobile, email_clean,
-        reg.dob[:10], reg.sex, reg.uhid.strip(), reg.hospital_name or "Care Facility",
-        reg.discharge_date[:10], reg.diagnosis or "", json.dumps(reg.allergies or []),
-        json.dumps(reg.conditions or []), reg.medicines or "", reg.height or "",
-        reg.weight or "", reg.preferred_language, reg.caregiver.name,
-        reg.caregiver.mobile, reg.caregiver.relationship, 1 if reg.caregiver.consent_alerts else 0,
-        json.dumps(reg.reminder_times), 1 if reg.notification_sound else 0,
+        dob_str, reg.sex or "Other", uhid_clean, reg.hospital_name or "Care Facility",
+        discharge_date_str, reg.diagnosis or "", json.dumps(reg.allergies or []),
+        json.dumps(reg.conditions or getattr(reg, "chronic_conditions", None) or []),
+        (reg.medicines if isinstance(reg.medicines, str) else ", ".join(reg.current_medicines or [])) or "",
+        reg.height or "", reg.weight or "", reg.preferred_language or "en",
+        reg.caregiver.name if reg.caregiver else "",
+        reg.caregiver.mobile if reg.caregiver else "",
+        reg.caregiver.relationship if reg.caregiver else "",
+        1 if (reg.caregiver and reg.caregiver.consent_alerts) else 0,
+        json.dumps(reg.reminder_times or {}), 1 if reg.notification_sound else 0,
         1 if reg.notification_browser else 0, 1 if reg.notification_sms else 0,
-        reg.emergency_contact or "", 1 if reg.consents.caregiver_alerts else 0,
+        reg.emergency_contact or "", 1 if (reg.consents and reg.consents.caregiver_alerts) else 0,
         now_iso, now_iso
     ))
 

@@ -184,27 +184,33 @@ class PatientConsents(BaseModel):
 
 class PatientRegistrationRequest(BaseModel):
     # Step 1: Account
+    username: Optional[str] = None
     full_name: str
     mobile: str
     email: Optional[str] = None
     password: str
     preferred_language: str = "en"
+    otp: Optional[str] = None
 
     # Step 2: Clinical & Medical Demographics
-    dob: str
-    sex: str
-    uhid: str
-    discharge_date: str
-    hospital_name: Optional[str] = None
+    dob: Optional[str] = "1975-01-01"
+    date_of_birth: Optional[str] = None
+    age: Optional[int] = None
+    sex: Optional[str] = "Other"
+    uhid: Optional[str] = None
+    discharge_date: Optional[str] = None
+    hospital_name: Optional[str] = "Care Facility"
     diagnosis: Optional[str] = None
     allergies: List[str] = Field(default_factory=list)
     conditions: List[str] = Field(default_factory=list)
+    chronic_conditions: List[str] = Field(default_factory=list)
     medicines: Optional[str] = None
+    current_medicines: Optional[List[str]] = None
     height: Optional[str] = None
     weight: Optional[str] = None
 
     # Step 3: Caregiver, Notifications & Consents
-    caregiver: CaregiverInfo
+    caregiver: Optional[CaregiverInfo] = None
     reminder_times: Dict[str, str] = Field(default_factory=lambda: {
         "morning": "08:00",
         "afternoon": "13:00",
@@ -215,7 +221,7 @@ class PatientRegistrationRequest(BaseModel):
     notification_browser: bool = True
     notification_sms: bool = False
     emergency_contact: Optional[str] = None
-    consents: PatientConsents
+    consents: Optional[PatientConsents] = None
 
 
 class PatientProfile(BaseModel):
